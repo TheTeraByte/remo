@@ -86,7 +86,8 @@ class SendInactivityNotifications(RemoTestCase):
         mentor = UserFactory.create(groups=['Mentor'])
         today = now().date()
         rep = UserFactory.create(
-            groups=['Rep'], userprofile__mentor=mentor)
+            groups=['Rep'], userprofile__mentor=mentor,
+            userprofile__date_joined_program=get_date(days=-100))
         NGReportFactory.create(user=rep,
                                report_date=today - timedelta(weeks=5))
 
@@ -98,8 +99,10 @@ class SendInactivityNotifications(RemoTestCase):
 
         eq_(mail_mock.call_count, 2)
         expected_call_list = [
-            call(rep_subject, [rep.email], message=mockany),
-            call(mentor_subject, [mentor.email], message=mockany)]
+            call(rep_subject, [rep.email], message=mockany,
+                 headers={'Reply-To': mentor.email}),
+            call(mentor_subject, [mentor.email], message=mockany,
+                 headers={'Reply-To': rep.email})]
         eq_(mail_mock.call_args_list, expected_call_list)
 
     def test_with_report_filled(self):
@@ -131,8 +134,10 @@ class SendInactivityNotifications(RemoTestCase):
 
         eq_(mail_mock.call_count, 2)
         expected_call_list = [
-            call(rep_subject, [rep.email], message=mockany),
-            call(mentor_subject, [mentor.email], message=mockany)]
+            call(rep_subject, [rep.email], message=mockany,
+                 headers={'Reply-To': mentor.email}),
+            call(mentor_subject, [mentor.email], message=mockany,
+                 headers={'Reply-To': rep.email})]
         eq_(mail_mock.call_args_list, expected_call_list)
 
 
